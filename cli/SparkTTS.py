@@ -91,6 +91,7 @@ class SparkTTS:
                 "<|end_global_token|>",
                 "<|start_semantic_token|>",
                 semantic_tokens,
+                "<|end_semantic_token|>",
             ]
         else:
             inputs = [
@@ -196,7 +197,7 @@ class SparkTTS:
         # Generate speech using the model
         generated_ids = self.model.generate(
             **model_inputs,
-            max_new_tokens=3000,
+            max_new_tokens=5000,
             do_sample=True,
             top_k=top_k,
             top_p=top_p,
