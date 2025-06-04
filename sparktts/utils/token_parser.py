@@ -64,14 +64,10 @@ EMO_MAP = {
 
 
 class TokenParser:
-    """Turn label to special token"""
+    """Turn label to special token."""
 
-    def __init__(self):
-        pass
-
-    """Parse the attributes of a person."""
-
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the parser for speaker attributes."""
         pass
 
     @staticmethod
