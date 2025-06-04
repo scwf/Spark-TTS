@@ -158,6 +158,101 @@ We now provide a reference for deploying Spark-TTS with Nvidia Triton and Tensor
 
 Please see the detailed instructions in [runtime/triton_trtllm/README.md](runtime/triton_trtllm/README.md ) for more information.
 
+## Flask API Server
+
+This project includes a Flask-based API server to provide TTS services programmatically.
+
+### Installation
+
+Ensure you have all necessary dependencies installed by running:
+```bash
+pip install -r requirements.txt
+```
+This will install Flask, Requests, and other project dependencies.
+
+### Running the Server
+
+To start the API server, execute the following command from the root of the project:
+```bash
+python api/app.py
+```
+The server will start by default on `http://0.0.0.0:5000`.
+
+### API Endpoints
+
+#### `/synthesize`
+
+- **Method**: `POST`
+- **URL**: `/synthesize`
+- **Description**: Synthesizes speech from text using the SparkTTS model.
+- **Payload (JSON)**:
+    - `text` (string, **required**): The text to be synthesized.
+    - `prompt_text` (string, optional): The transcript of the prompt audio. Useful for improving voice cloning quality when `prompt_speech_path` is provided.
+    - `prompt_speech_path` (string, optional): The filesystem path to a WAV file to be used as a voice prompt for zero-shot voice cloning.
+    - `gender` (string, optional): Desired gender of the voice (e.g., 'male', 'female'). Used for voice creation when no prompt is provided.
+    - `pitch` (integer, optional): Desired pitch level for voice creation (e.g., 1-5, maps to internal model values).
+    - `speed` (integer, optional): Desired speed level for voice creation (e.g., 1-5, maps to internal model values).
+- **Success Response**:
+    - Code: `200 OK`
+    - Content-Type: `audio/wav`
+    - Body: The synthesized audio data as a WAV file.
+- **Error Responses**:
+    - Code: `400 Bad Request` - If the required `text` field is missing in the payload.
+      ```json
+      {
+          "error": "Text is required"
+      }
+      ```
+      (Note: The actual error message for missing text from `api/app.py` is "Missing text parameter")
+    - Code: `500 Internal Server Error` - If any error occurs during the synthesis process.
+      ```json
+      {
+          "error": "Failed to synthesize audio",
+          "details": "<specific error message>"
+      }
+      ```
+
+### Example Usage
+
+You can use `curl` to interact with the API:
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"text": "Hello from the API"}' \
+     http://localhost:5000/synthesize --output output.wav
+```
+This command will send a request to synthesize the text "Hello from the API" and save the resulting audio to `output.wav`.
+
+To use voice creation parameters:
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"text": "This is a custom female voice.", "gender": "female", "pitch": 2, "speed": 4}' \
+     http://localhost:5000/synthesize --output custom_female_voice.wav
+```
+
+To use voice cloning with a prompt audio file (ensure `prompt.wav` exists and is accessible by the server):
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"text": "Cloning this voice.", "prompt_speech_path": "path/to/your/prompt.wav"}' \
+     http://localhost:5000/synthesize --output cloned_voice.wav
+```
+
+#### Running API Tests
+The API tests are located in `api/tests/test_api.py` and use the `requests` library to perform black-box testing against a running server instance.
+
+To run these tests:
+1.  Ensure you have installed all dependencies, including `requests`, from `requirements.txt`:
+    ```bash
+    pip install -r requirements.txt
+    ```
+2.  Start the Flask API server in one terminal:
+    ```bash
+    python api/app.py
+    ```
+3.  In another terminal, navigate to the root of the project and run the tests:
+    ```bash
+    python api/tests/test_api.py
+    ```
 
 ## **Demos**
 
